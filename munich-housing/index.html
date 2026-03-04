@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Munich Housing Platform</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.css" rel="stylesheet">
+    <link rel="stylesheet" href="/src/css/style.css" />
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <div class="logo">Munich Housing</div>
+      <div class="nav-links" id="nav-links">
+        <!-- Dynamically populated based on auth state -->
+        <button id="nav-login-btn" class="btn">Login / Sign Up</button>
+        <div id="nav-user-menu" class="hidden">
+          <span id="nav-user-email"></span>
+          <button id="nav-post-btn" class="btn btn-primary">Post Listing</button>
+          <button id="nav-profile-btn" class="btn">Profile</button>
+          <button id="nav-logout-btn" class="btn btn-secondary">Logout</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container (Two-column layout) -->
+    <main class="main-container">
+      <!-- Left Column: Listings -->
+      <section class="listings-section">
+        <h2>Available Housing in Munich</h2>
+        <div id="listings-container" class="listings-container">
+          <!-- Listing cards will be injected here -->
+          <p>Loading listings...</p>
+        </div>
+      </section>
+
+      <!-- Right Column: Map -->
+      <section class="map-section">
+        <div id="map"></div>
+      </section>
+    </main>
+
+    <!-- Modals -->
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-btn" id="close-auth-modal">&times;</span>
+        <h2 id="auth-title">Login</h2>
+        <form id="auth-form">
+          <input type="email" id="auth-email" placeholder="Email" required />
+          <input type="password" id="auth-password" placeholder="Password" required />
+          <button type="submit" class="btn btn-primary" id="auth-submit-btn">Login</button>
+        </form>
+        <p class="auth-toggle">
+          <span id="auth-toggle-text">Don't have an account?</span>
+          <a href="#" id="auth-toggle-link">Sign up</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Post Listing Modal -->
+    <div id="post-modal" class="modal hidden">
+      <div class="modal-content modal-large">
+        <span class="close-btn" id="close-post-modal">&times;</span>
+        <h2>Post a New Listing</h2>
+        <form id="post-form">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="post-title" required />
+          </div>
+          <div class="form-group row">
+            <div class="col">
+              <label>Price (€/month)</label>
+              <input type="number" id="post-price" required />
+            </div>
+            <div class="col">
+              <label>District</label>
+              <select id="post-district" required>
+                <option value="Maxvorstadt">Maxvorstadt</option>
+                <option value="Schwabing">Schwabing</option>
+                <option value="Ludwigsvorstadt">Ludwigsvorstadt</option>
+                <option value="Isarvorstadt">Isarvorstadt</option>
+                <option value="Neuhausen">Neuhausen</option>
+                <option value="Bogenhausen">Bogenhausen</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="col">
+              <label>Latitude</label>
+              <input type="number" step="any" id="post-lat" placeholder="e.g. 48.1351" required />
+            </div>
+            <div class="col">
+              <label>Longitude</label>
+              <input type="number" step="any" id="post-lng" placeholder="e.g. 11.5820" required />
+            </div>
+          </div>
+          <p class="help-text">Tip: Munich coordinates are roughly 48.1351 / 11.5820</p>
+          <div class="form-group row">
+            <div class="col">
+              <label>Availability Date</label>
+              <input type="date" id="post-date" required />
+            </div>
+            <div class="col">
+              <label>Room Type</label>
+              <select id="post-type" required>
+                <option value="WG">WG (Shared)</option>
+                <option value="Apartment">Apartment</option>
+                <option value="Sublet">Sublet</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="post-desc" rows="4" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Upload Image</label>
+            <input type="file" id="post-image" accept="image/*" required />
+          </div>
+          <button type="submit" class="btn btn-primary" id="post-submit-btn">Post Listing</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Message Modal -->
+    <div id="message-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-btn" id="close-message-modal">&times;</span>
+        <h2>Send a Message</h2>
+        <p>To: <span id="message-recipient-name"></span></p>
+        <form id="message-form">
+          <textarea id="message-body" rows="4" placeholder="Write your message here..." required></textarea>
+          <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Profile Modal (Could also be a separate page, but modal is SPA-friendly) -->
+    <div id="profile-modal" class="modal hidden">
+      <div class="modal-content modal-large">
+        <span class="close-btn" id="close-profile-modal">&times;</span>
+        <h2>User Profile</h2>
+        <div class="profile-section">
+          <h3>Subscription Status</h3>
+          <p id="profile-sub-status">Free User</p>
+          <button id="profile-upgrade-btn" class="btn btn-primary hidden">Upgrade to Premium (€5/month)</button>
+        </div>
+        <div class="profile-section">
+          <h3>Received Messages</h3>
+          <div id="profile-messages-container">
+            <p>No messages yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">Message</div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
